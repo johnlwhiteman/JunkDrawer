@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+export DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
+function addBashAlias {
+    BASH_RC_PATH=$HOME/.bashrc
+    backupFile "$BASH_RC_PATH"
+    newAlias="alias $1=\"$2\""
+    grep -qF "$newAlias" "$BASH_RC_PATH" || echo "$newAlias" >> "$BASH_RC_PATH"
+    source $BASH_RC_PATH
+}
+
+function addBashPath {
+    BASH_RC_PATH=$HOME/.bashrc
+    backupFile "$BASH_RC_PATH"
+    newPath="export PATH=$1:\$PATH"
+    bash -c "grep -q -F '$newPath' $BASH_RC_PATH || echo '$newPath' >> $BASH_RC_PATH"
+    source $BASH_RC_PATH
+}
+
+function backupFile {
+    if [ ! -f $1.ORIGINAL ]; then
+        cp $1 $1.ORIGINAL
+    fi
+}
+
+function installAnacondaPython {
+    ANACONDA_DIR=$DIR/anaconda
+    ANACONDA_URL='https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh'
+    ANACONDA_INSTALLER=$DIR/$(basename $ANACONDA_URL)
+    rm -f $ANACONDA_INSTALLER
+    if [ -d  "$ANACONDA_DIR" ]; then
+       return
+    fi
+    if [ ! -f "$ANACONDA_INSTALLER" ]; then
+        wget $ANACONDA_INSTALLER
+    fi
+    wget $ANACONDA_URL -O $ANACONDA_INSTALLER
+    chmod +x $ANACONDA_INSTALLER
+    $ANACONDA_INSTALLER -b -p $ANACONDA_DIR
+    rm -f $ANACONDA_INSTALLER
+    addBashPath "$ANACONDA_DIR"
+    source $HOME/.bashrc
+    conda install -y -c anaconda paramiko
+    conda install -y -c anaconda requests
+}
+
+function installDependencies {
+    sudo apt-get install bzip2 -y
+    sudo apt-get install wget -y
+}
+
+function installVim {
+    sudo apt-get install vim -y
+    cat << 'EOL' > ~/.vimrc
+filetype plugin indent off
+set tabstop=4
+set shiftwidth=4
+set expandtab
+set vb t_vb=
+set background=dark
+autocmd Filetype html setlocal ts=4 sts=4 sw=4 expandtab
+autocmd Filetype java setlocal ts=4 sts=4 sw=4 expandtab
+autocmd Filetype javascript setlocal ts=4 sts=4 sw=4 expandtab
+autocmd Filetype php setlocal ts=4 sts=4 sw=4 expandtab
+autocmd Filetype python setlocal ts=4 sts=4 sw=4 expandtab
+autocmd Filetype yaml setlocal ts=2 sts=2 sw=2 expandtab
+EOL
+}
+
+function restoreFile {
+    if [ -f $1.ORIGINAL ]; then
+        cp $1.ORIGINAL $1
+    fi
+}
