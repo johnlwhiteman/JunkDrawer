@@ -32,21 +32,29 @@ function installAnacondaPython {
        return
     fi
     if [ ! -f "$ANACONDA_INSTALLER" ]; then
-        wget $ANACONDA_INSTALLER
+        wget $ANACONDA_URL -O $ANACONDA_INSTALLER
     fi
-    wget $ANACONDA_URL -O $ANACONDA_INSTALLER
     chmod +x $ANACONDA_INSTALLER
     $ANACONDA_INSTALLER -b -p $ANACONDA_DIR
     rm -f $ANACONDA_INSTALLER
-    addBashPath "$ANACONDA_DIR"
-    source $HOME/.bashrc
-    conda install -y -c anaconda paramiko
-    conda install -y -c anaconda requests
+    addBashPath "$ANACONDA_DIR/bin"
+    $ANACONDA_DIR/bin/conda install -y -c anaconda paramiko
+    $ANACONDA_DIR/bin/conda install -y -c anaconda requests
 }
 
 function installDependencies {
     sudo yum install bzip2 -y
     sudo yum install wget -y
+}
+
+function installOracleJava {
+    JAVA_URL='http://download.oracle.com/otn-pub/java/jdk/8u181-b13/96a7b8442fe848ef90c96a2fad6ed6d1/jdk-8u181-linux-x64
+.rpm'
+    JAVA_INSTALLER=$DIR/$(basename $JAVA_URL)
+    wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=acc
+ept-securebackup-cookie" "$JAVA_URL" -O "$JAVA_INSTALLER"
+    sudo yum localinstall $JAVA_INSTALLER -y
+    rm -f $JAVA_INSTALLER
 }
 
 function installVim {
